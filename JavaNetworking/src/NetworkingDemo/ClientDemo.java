@@ -11,58 +11,49 @@ import java.net.UnknownHostException;
 import java.util.Scanner;
 
 public class ClientDemo {
-	
-	public static void main(String args[]) throws UnknownHostException, IOException
-	{
-		int number1;
-		String quit;
-		int number2, number3;
-		int sum;
-		int serverPort = 1000;
-		Scanner sc = new Scanner(System.in);
-		PrintWriter out = null;
-		BufferedReader in = null;
-		
-		Socket clientSocket = new Socket("127.0.0.1", serverPort);
-		//Socket connection = clientSocket.accept();
-		Scanner sc1 = new Scanner(clientSocket.getInputStream());
-		InetAddress serverIPAddress = InetAddress.getByName("localhost");
-		System.out.println("Attempting to send data to " +  serverIPAddress);
-		System.out.println("This progam will calculate the sum of integers between two numbers.\nThe first number should be less than the second number");
-		System.out.println("Enter first number");
-		number1 = sc.nextInt();
-		PrintStream p1 = new PrintStream(clientSocket.getOutputStream());
-		System.out.println("Enter second number");
-		number2 = sc.nextInt();
-		PrintStream p2 = new PrintStream(clientSocket.getOutputStream());
-	    System.out.println("Enter 1 to sum all odd numbers between the two inputs. Enter 2 to sum all even numbers between the two inputs");
-		number3 = sc.nextInt();
-		PrintStream p3 = new PrintStream(clientSocket.getOutputStream());
-	
-		p1.println(number1);
-		p2.println(number2);
-		p3.println(number3);
 
-		//get sum back from server
-		//sum = sc1.nextInt();
-		//System.out.println(sum);
+	static int serverPort = 1000;
+	PrintWriter out = null;
+	BufferedReader in = null;
 
+	public static void main(String args[]) throws UnknownHostException, IOException {
+		ClientDemo clientObj = new ClientDemo();
+
+		try {
+			InetAddress serverIPAddress = InetAddress.getByName("localhost");
+			Socket clientSocket = new Socket("127.0.0.1", serverPort);
+
+			PrintWriter output = new PrintWriter(clientSocket.getOutputStream(), true);
+			BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
+			BufferedReader input = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+			String clientMessage = "";
+			System.out.print("This progam will calculate the sum of integers between two numbers.\nThe first number should be less than the second number");
+			System.out.print("\nEnter number or \"Bye.\"  to quit\n");
+			
+			//shift control d to end line 
+			while ((clientMessage = stdIn.readLine() + ';' + stdIn.readLine() + ';' + stdIn.readLine()) != null) {
+				if (clientMessage.contains("Bye.")) {
+					clientObj.write(output, clientMessage);
+				} else {
+					clientObj.write(output, "number=" + clientMessage);
+					System.out.println("number: " + input.readLine());
+				}
+				if (clientMessage.contains("Bye."))
+				{
+					System.out.println("Closing client socket ");
+					clientSocket.close();
+					break;
+				}
+			}
+		} 
+		catch (IOException e) {
+			e.printStackTrace();
+		} 
 		
-//		BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
-//		String userInput;
-//
-//		System.out.println("Type Message (\"Bye.\" to quit)");
-//		System.out.print("Input: ");
-//		while ((userInput = stdIn.readLine()) != null)
-//		{
-//			out.println(userInput);
-//			System.out.println("Client: " + in.readLine());
-//			// end loop if client sends "Bye."
-//			if (userInput.equals("Bye."))
-//				break;
-//
-//			System.out.print("Input: ");
-//		}
 	}
 
+	public void write(PrintWriter output, String clientMessage) {
+		System.out.println("Sending: " + clientMessage);
+		output.println(clientMessage);
+	}
 }
